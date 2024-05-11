@@ -1,0 +1,7 @@
+
+venv
+.idea
+Lab 1/Docker_MongoDB/data
+Lab 1/Docker_Postgres/data
+Lab 1/Docker_Postgres/servers.json
+Lab 1/.ipynb_checkpoints
