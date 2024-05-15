@@ -78,7 +78,7 @@ df_replicate_menu = df_replicate_menu.withColumn('id', row_number().over(w))\
 df_orders = df_orders.join(other=df_replicate_menu, how='left', on='id_order').orderBy('id_order').dropDuplicates()
 df_orders = df_orders.withColumn('rand', rand())
 df_orders = df_orders.withColumn('count_meal', F.when(df_orders['rand'] > 0.97, 2)
-                                 .otherwise(F.when(df_orders['rand'] > 0.99, 3)
+                                 .otherwise(F.when(df_orders['rand'] > 0.96, 3)
                                  .otherwise(1)))
 df_orders = df_orders.withColumn('rand', rand())
 df_orders = df_orders.withColumn('city', F.when(df_orders['rand'] > 0.95, None).otherwise(F.col('city'))).drop('rand')
