@@ -18,7 +18,6 @@ df_orders = spark.read.format('avro').load('good_orders_avro').drop('Date')
 w = Window.orderBy(F.lit("City"))
 df_cafe = df_orders.select('Cafe_name', 'lat', 'lng', 'City').dropDuplicates().orderBy('City')\
     .select('*', F.row_number().over(w).alias('id_cafe'))
-# df_cafe.show()
 
 # Из начального датафрейма удалим все колонки, связанные с кафе, заменив их на id_cafe)
 df_orders = df_orders.join(df_cafe, ['Cafe_name', 'lat', 'lng', 'City'], how='left')\
@@ -27,7 +26,7 @@ df_orders = df_orders.join(df_cafe, ['Cafe_name', 'lat', 'lng', 'City'], how='le
 # Аналогично проделаем все то же самое с информацией о меню
 df_meal = df_orders.select('Menu_item', 'Price').dropDuplicates().orderBy('Menu_item')\
     .select('*', F.row_number().over(w).alias('id_meal'))
-# df_meal.show()
+
 df_orders = df_orders.join(df_meal, ['Menu_item', 'Price'], how='left') .drop('Menu_item', 'Price')\
     .orderBy('id_order')
 
@@ -36,7 +35,7 @@ df_orders = df_orders.join(df_meal, ['Menu_item', 'Price'], how='left') .drop('M
 df_meals_in_order = df_orders.select('id_order', 'id_meal', 'Count_Meal').orderBy('id_order')
 df_orders = df_orders.drop('id_meal', 'Count_Meal').dropDuplicates().orderBy('id_order')
 
-# df_orders.show()
+
 df_meal.write.format('jdbc')\
     .mode('overwrite')\
     .option('url', 'jdbc:postgresql://localhost:5432/postgres')\

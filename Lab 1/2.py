@@ -14,17 +14,12 @@ df_orders = df_orders.withColumnRenamed('Café Name', 'Cafe_name')
 df_orders = df_orders.withColumnRenamed('Menu item', 'Menu_item')
 df_orders = df_orders.withColumnRenamed('Count meal', 'Count_Meal')
 df_orders = df_orders.withColumn('Date', F.to_date(F.col('Date_and_Time')))
-df_orders.show()
+
 condition = F.col('City').isNull() | F.col('Price').isNull()
 df_bad_rows = df_orders.where(condition)
 df_bad_rows.write.mode('overwrite').parquet('bad_orders_parquet')
-# df_bad_rows.show()
-# print((df_bad_rows.count(), len(df_orders.columns)))
-# print((df_orders.count(), len(df_orders.columns)))
 
 df_orders = df_orders.where(~condition)
-
-# print((df_orders1.count(), len(df_orders1.columns)) == (df_orders.dropna().count(), len(df_orders.dropna().columns)))
 
 df_orders.write\
     .partitionBy("Date", 'City')\

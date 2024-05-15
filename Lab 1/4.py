@@ -16,12 +16,12 @@ df_orders = spark.read.format('avro').load('good_orders_avro').drop('Date')
 w = Window.orderBy(F.lit("City"))
 df_cafe_dim = df_orders.select('Cafe_name', 'lat', 'lng', 'City').dropDuplicates().orderBy('City')\
     .select('*', F.row_number().over(w).alias('id_cafe'))
-# df_cafe.show()
+
 df_orders_facts = df_orders.join(df_cafe_dim, ['Cafe_name', 'lat', 'lng', 'City'], how='left')\
     .drop('Cafe_name', 'lat', 'lng', 'City')
 df_meal_dim = df_orders_facts.select('Menu_item').dropDuplicates().orderBy('Menu_item')\
     .select('*', F.row_number().over(w).alias('id_meal'))
-# df_meal.show()
+
 df_orders_facts = df_orders_facts.join(df_meal_dim, ['Menu_item'], how='left') .drop('Menu_item')\
     .orderBy('id_order')
 
