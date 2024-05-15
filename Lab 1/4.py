@@ -12,17 +12,17 @@ spark = SparkSession.builder.config("spark.driver.memory", "10g").master('local[
     .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
-df_orders = spark.read.format('avro').load('good_orders_avro').drop('Date')
-w = Window.orderBy(F.lit("City"))
-df_cafe_dim = df_orders.select('Cafe_name', 'lat', 'lng', 'City').dropDuplicates().orderBy('City')\
+df_orders = spark.read.format('avro').load('good_orders_avro').drop('date')
+w = Window.orderBy(F.lit("city"))
+df_cafe_dim = df_orders.select('cafe_name', 'lat', 'lng', 'city').dropDuplicates().orderBy('city')\
     .select('*', F.row_number().over(w).alias('id_cafe'))
 
-df_orders_facts = df_orders.join(df_cafe_dim, ['Cafe_name', 'lat', 'lng', 'City'], how='left')\
-    .drop('Cafe_name', 'lat', 'lng', 'City')
-df_meal_dim = df_orders_facts.select('Menu_item').dropDuplicates().orderBy('Menu_item')\
+df_orders_facts = df_orders.join(df_cafe_dim, ['cafe_name', 'lat', 'lng', 'city'], how='left')\
+    .drop('cafe_name', 'lat', 'lng', 'city')
+df_meal_dim = df_orders_facts.select('menu_item').dropDuplicates().orderBy('menu_item')\
     .select('*', F.row_number().over(w).alias('id_meal'))
 
-df_orders_facts = df_orders_facts.join(df_meal_dim, ['Menu_item'], how='left') .drop('Menu_item')\
+df_orders_facts = df_orders_facts.join(df_meal_dim, ['menu_item'], how='left') .drop('menu_item')\
     .orderBy('id_order')
 
 df_meal_dim.write.format('jdbc')\

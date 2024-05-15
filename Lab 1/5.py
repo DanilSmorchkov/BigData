@@ -20,13 +20,13 @@ df_orders = spark.read.format('parquet')\
         .load("good_orders_parquet")
 
 w = Window.partitionBy('id_order')
-df_orders = df_orders.withColumn('Sum_price', F.sum(df_orders['price'] * df_orders['Count_meal']).over(w))
+df_orders = df_orders.withColumn('sum_price', F.sum(df_orders['price'] * df_orders['count_meal']).over(w))
 
-df_meals = df_orders.select('id_order', 'Menu_item', "Price", 'Count_Meal')
-df_orders = df_orders.select('id_order', 'Date_and_Time', 'Sum_price')
+df_meals = df_orders.select('id_order', 'menu_item', "price", 'count_meal')
+df_orders = df_orders.select('id_order', 'date_and_time', 'sum_price')
 df_combined = df_orders.join(df_meals
                              .groupBy('id_order')
-                             .agg(F.collect_list(F.struct('Menu_item', 'Price', 'Count_Meal')).alias('meals')),
+                             .agg(F.collect_list(F.struct('menu_item', 'price', 'count_meal')).alias('meals')),
                              on='id_order', how='left').dropDuplicates()
 
 df_combined.write.format("com.mongodb.spark.sql")\

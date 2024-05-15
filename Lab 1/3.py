@@ -13,27 +13,27 @@ spark = SparkSession.builder.config("spark.driver.memory", "10g").master('local[
 spark.sparkContext.setLogLevel('WARN')
 
 # Считаем данные
-df_orders = spark.read.format('avro').load('good_orders_avro').drop('Date')
+df_orders = spark.read.format('avro').load('good_orders_avro').drop('date')
 # выделим отдельный фрейм для информации о кафе (добавим в него id_cafe)
-w = Window.orderBy(F.lit("City"))
-df_cafe = df_orders.select('Cafe_name', 'lat', 'lng', 'City').dropDuplicates().orderBy('City')\
+w = Window.orderBy(F.lit("city"))
+df_cafe = df_orders.select('cafe_name', 'lat', 'lng', 'city').dropDuplicates().orderBy('city')\
     .select('*', F.row_number().over(w).alias('id_cafe'))
 
 # Из начального датафрейма удалим все колонки, связанные с кафе, заменив их на id_cafe)
-df_orders = df_orders.join(df_cafe, ['Cafe_name', 'lat', 'lng', 'City'], how='left')\
-    .drop('Cafe_name', 'lat', 'lng', 'City')
+df_orders = df_orders.join(df_cafe, ['cafe_name', 'lat', 'lng', 'city'], how='left')\
+    .drop('cafe_name', 'lat', 'lng', 'city')
 
 # Аналогично проделаем все то же самое с информацией о меню
-df_meal = df_orders.select('Menu_item', 'Price').dropDuplicates().orderBy('Menu_item')\
+df_meal = df_orders.select('menu_item', 'price').dropDuplicates().orderBy('menu_item')\
     .select('*', F.row_number().over(w).alias('id_meal'))
 
-df_orders = df_orders.join(df_meal, ['Menu_item', 'Price'], how='left') .drop('Menu_item', 'Price')\
+df_orders = df_orders.join(df_meal, ['menu_item', 'price'], how='left') .drop('menu_item', 'price')\
     .orderBy('id_order')
 
 # Создадим отдельный датафрейм, который будет связан с блюдами, а остальные вещи, связанные с
 # заказом поместим в orders
-df_meals_in_order = df_orders.select('id_order', 'id_meal', 'Count_Meal').orderBy('id_order')
-df_orders = df_orders.drop('id_meal', 'Count_Meal').dropDuplicates().orderBy('id_order')
+df_meals_in_order = df_orders.select('id_order', 'id_meal', 'count_meal').orderBy('id_order')
+df_orders = df_orders.drop('id_meal', 'count_meal').dropDuplicates().orderBy('id_order')
 
 
 df_meal.write.format('jdbc')\

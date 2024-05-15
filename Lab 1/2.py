@@ -9,25 +9,21 @@ spark = SparkSession.builder.config("spark.driver.memory", "10g").master('local[
     .config('spark.jars.packages', 'org.apache.spark:spark-avro_2.12:3.4.3')\
     .getOrCreate()
 df_orders = spark.read.csv('./orders', header=True, inferSchema=True)
-df_orders = df_orders.withColumnRenamed('Date & Time', 'Date_and_Time')
-df_orders = df_orders.withColumnRenamed('Café Name', 'Cafe_name')
-df_orders = df_orders.withColumnRenamed('Menu item', 'Menu_item')
-df_orders = df_orders.withColumnRenamed('Count meal', 'Count_Meal')
-df_orders = df_orders.withColumn('Date', F.to_date(F.col('Date_and_Time')))
+df_orders = df_orders.withColumn('date', F.to_date(F.col('date_and_time')))
 
-condition = F.col('City').isNull() | F.col('Price').isNull()
+condition = F.col('city').isNull() | F.col('price').isNull()
 df_bad_rows = df_orders.where(condition)
 df_bad_rows.write.mode('overwrite').parquet('bad_orders_parquet')
 
-df_orders = df_orders.where(~condition)
+df_orders = df_orders.where(~condition).cache()
 
 df_orders.write\
-    .partitionBy("Date", 'City')\
+    .partitionBy("date", 'city')\
     .mode('overwrite')\
     .parquet('good_orders_parquet')
 
 df_orders.write\
-    .partitionBy("Date", 'City')\
+    .partitionBy("date", 'city')\
     .mode('overwrite')\
     .format("avro")\
     .save("good_orders_avro")

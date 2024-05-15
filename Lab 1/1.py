@@ -32,14 +32,14 @@ random_date_udf = udf(random_date, TimestampType())
 # Создаем каталог заказов. Сначала он содержит только номер заказа и время
 df_orders = spark.range(0, 700000)\
     .withColumnRenamed('id', "id_order")\
-    .withColumn('Date & Time', random_date_udf())\
-    .orderBy('Date & Time')
+    .withColumn('date_and_time', random_date_udf())\
+    .orderBy('date_and_time')
 
 # Далее добавим кафе в котором были совершены заказы с их местоположением
 # Сначала создадим Датафрейм с информацией о кафе
 df_cafe = spark.read.csv('./cafe.csv', header=True, inferSchema=True)
 # Теперь размножим этот датафрейм
-df_replicate_cafe = df_cafe.withColumn('City', expr('explode(array_repeat(City, 15000))'))
+df_replicate_cafe = df_cafe.withColumn('city', expr('explode(array_repeat(City, 15000))'))
 # Зашафлим датафрейм
 df_replicate_cafe = df_replicate_cafe.withColumn("Random", rand()).orderBy("Random").drop('Random')
 # Создадим дополнительный столбец id_order, по которому будет join кафе и заказы
@@ -62,7 +62,7 @@ df_orders = df_orders_with_num_meals.drop('num_meals')
 # Далее работаем с меню
 df_menu = spark.read.csv('./menu.csv', header=True, inferSchema=True)
 # Точно так же множим строки и шафлим
-df_replicate_menu = df_menu.withColumn('Price', expr('explode(array_repeat(Price, 70000))'))
+df_replicate_menu = df_menu.withColumn('price', expr('explode(array_repeat(price, 70000))'))
 df_replicate_menu = df_replicate_menu.withColumn("Random", rand()).orderBy("Random").drop('Random')
 
 # Далее добавляем колонку с количеством блюд для каждого заказа, с этой целью создаем дополнительные столбцы в обоих
@@ -77,13 +77,13 @@ df_replicate_menu = df_replicate_menu.withColumn('id', row_number().over(w))\
 # количество блюд в одном заказе
 df_orders = df_orders.join(other=df_replicate_menu, how='left', on='id_order').orderBy('id_order').dropDuplicates()
 df_orders = df_orders.withColumn('rand', rand())
-df_orders = df_orders.withColumn('Count meal', F.when(df_orders['rand'] > 0.97, 2)
+df_orders = df_orders.withColumn('count_meal', F.when(df_orders['rand'] > 0.97, 2)
                                  .otherwise(F.when(df_orders['rand'] > 0.99, 3)
                                  .otherwise(1)))
 df_orders = df_orders.withColumn('rand', rand())
-df_orders = df_orders.withColumn('City', F.when(df_orders['rand'] > 0.95, None).otherwise(F.col('City'))).drop('rand')
+df_orders = df_orders.withColumn('city', F.when(df_orders['rand'] > 0.95, None).otherwise(F.col('city'))).drop('rand')
 df_orders = df_orders.withColumn('rand', rand())
-df_orders = df_orders.withColumn('Price', F.when(df_orders['rand'] > 0.9, None).otherwise(F.col('Price'))).drop('rand')
+df_orders = df_orders.withColumn('price', F.when(df_orders['rand'] > 0.9, None).otherwise(F.col('price'))).drop('rand')
 
 
 df_orders.write.option("charset", "UTF8").csv('orders', sep=",", header=True)
