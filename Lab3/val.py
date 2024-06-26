@@ -8,7 +8,7 @@ model = YOLO(r"C:\Users\User\PycharmProjects\BigData\Lab3\best-2.pt")  # pretrai
 
 imgs_path = []
 
-for dirpath, _, filenames in os.walk(r'C:\Users\User\PycharmProjects\BigData\Lab3\train\images'):
+for dirpath, _, filenames in os.walk(r'C:\Users\User\PycharmProjects\BigData\Lab3\all_frames'):
     for f in filenames:
         imgs_path.append(os.path.abspath(os.path.join(dirpath, f)))
 
