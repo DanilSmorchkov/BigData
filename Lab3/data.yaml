@@ -1,0 +1,9 @@
+path: C:\Users\User\PycharmProjects\BigData\Lab3
+train: train/
+val: val/
+
+# number of classes
+nc: 2
+
+# class names
+names: ['entire', 'fragment']
